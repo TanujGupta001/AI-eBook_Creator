@@ -1,0 +1,33 @@
+const express = require("express");
+require("dotenv").config();
+const cors = require("cors");
+const path = require("path"); 
+const authRoutes = require("./routes/authRoutes");
+const bookRoutes = require("./routes/bookRoute");
+const aiRoutes = require("./routes/aiRoute");
+const { MongoDBconfig }  = require("./config/db");
+
+
+const app= express();
+app.use(
+    cors({
+        origin:"*",
+        methods: ["GET","POST","PUT","DELETE","PATCH"],
+        allowedHeaders: ["Content-type" , "Authorization"],
+    })
+);
+
+//static folder for upload
+app.use("/backend/upload",express.static(path.join(__dirname,"uploads")));
+
+app.use(express.json());
+
+app.use("/api/auth",authRoutes);
+app.use("/api/book",bookRoutes);
+app.use("/api/ai",aiRoutes);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  MongoDBconfig();
+  console.log(`The server is running at port ${PORT}`);
+});
