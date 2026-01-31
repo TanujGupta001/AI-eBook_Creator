@@ -34,9 +34,7 @@ const App = () => {
         element={<ProtectedRoute><ProfilePage/></ProtectedRoute>}
         />
 
-
       </Routes>
-      <div  className=''>HELLO</div>
     </div>
   )
 }
