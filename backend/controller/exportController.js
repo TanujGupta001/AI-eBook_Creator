@@ -87,7 +87,7 @@ const processMarkdownToDocx = (markdown) => {
                 font: DOCX_STYLES.fonts.heading,
                 size: fontSize * 2,
               },
-            })
+            }),
           );
           i += 2; //skip inline and heading_close
         }
@@ -105,7 +105,7 @@ const processMarkdownToDocx = (markdown) => {
                   line: 360,
                 },
                 alignment: AlignmentType.JUSTIFIED,
-              })
+              }),
             );
           }
 
@@ -140,9 +140,9 @@ const processMarkdownToDocx = (markdown) => {
             const textRuns = processInlineContent(inlineToken.children);
             let bulletText = "";
             if (listType === "bullet") {
-              bulletText = ". ";
+              bulletText = "• ";
             } else if (listType === "ordered") {
-              bulletText = `${orderedCounter}.`;
+              bulletText = `${orderedCounter}. `;
               orderedCounter++;
             }
 
@@ -157,14 +157,14 @@ const processMarkdownToDocx = (markdown) => {
                 ],
                 spacing: { before: 50, after: 50 },
                 indent: { left: 720 }, // 0.5 inch indent
-              })
+              }),
             );
             i += 4; // Skip paragraph_open, inline, paragraph_close, list_item_close
           }
         }
       } else if (token.type === "blockquote_open") {
         // Find the blockquote content
-        const nextToken = tokens[i + 1];
+        const inlineToken = tokens[i + 1];
         if (inlineToken && inlineToken.type === "inline") {
           paragraphs.push(
             new Paragraph({
@@ -187,7 +187,7 @@ const processMarkdownToDocx = (markdown) => {
                   size: 24,
                 },
               },
-            })
+            }),
           );
           i += 4;
         }
@@ -202,11 +202,11 @@ const processMarkdownToDocx = (markdown) => {
                 color: "333333",
               }),
             ],
-            spacing: { before: 200, afteer: 200 },
+            spacing: { before: 200, after: 200 },
             shading: {
               fill: "F5F5F5",
             },
-          })
+          }),
         );
       } else if (token.type === "hr") {
         paragraphs.push(
@@ -220,8 +220,8 @@ const processMarkdownToDocx = (markdown) => {
                 size: 6,
               },
             },
-            spacing: { before: 200, afteer: 200 },
-          })
+            spacing: { before: 200, after: 200 },
+          }),
         );
       }
     } catch (tokenError) {
@@ -246,7 +246,7 @@ const processInlineContent = (children) => {
           italics: currentFormatting.italic,
           font: DOCX_STYLES.fonts.body,
           size: DOCX_STYLES.sizes.body * 2,
-        })
+        }),
       );
       textBuffer = "";
     }
@@ -265,8 +265,8 @@ const processInlineContent = (children) => {
     } else if (child.type === "em_close") {
       flushText();
       currentFormatting.italic = false;
-    } else if ((child.type = "text")) {
-      textBuffer = child.content;
+    } else if (child.type === "text") {
+      textBuffer += child.content;
     }
   });
   flushText();
@@ -296,7 +296,7 @@ const exportAsDocument = async (req, res) => {
             new Paragraph({
               text: "",
               spacing: { before: 1000 },
-            })
+            }),
           );
           // Add image centered on page
           coverPage.push(
@@ -312,18 +312,18 @@ const exportAsDocument = async (req, res) => {
               ],
               alignment: AlignmentType.CENTER,
               spacing: { before: 200, after: 400 },
-            })
+            }),
           );
           //page break after cover
           coverPage.push(
             new Paragraph({
               text: "",
               pageBreakBefore: true,
-            })
+            }),
           );
         }
-      } catch (ingErr) {
-        console.error(`Could not embed inage: ${imagePath}`, imgErr);
+      } catch (imgErr) {
+        console.error(`Could not embed image: ${imagePath}`, imgErr);
       }
     }
     sections.push(...coverPage);
@@ -344,7 +344,7 @@ const exportAsDocument = async (req, res) => {
         ],
         alignment: AlignmentType.CENTER,
         spacing: { before: 2000, after: 400 },
-      })
+      }),
     );
     // Subtitle if exists
     if (book.subtitle && book.subtitle.trim()) {
@@ -360,7 +360,7 @@ const exportAsDocument = async (req, res) => {
           ],
           alignment: AlignmentType.CENTER,
           spacing: { after: 400 },
-        })
+        }),
       );
     }
 
@@ -377,7 +377,7 @@ const exportAsDocument = async (req, res) => {
         ],
         alignment: AlignmentType.CENTER,
         spacing: { after: 400 },
-      })
+      }),
     );
 
     // Decorative Line
@@ -394,7 +394,7 @@ const exportAsDocument = async (req, res) => {
         },
         alignment: AlignmentType.CENTER,
         spacing: { before: 400 },
-      })
+      }),
     );
 
     sections.push(...titlePage);
@@ -407,7 +407,7 @@ const exportAsDocument = async (req, res) => {
             new Paragraph({
               text: "",
               pageBreakBefore: true,
-            })
+            }),
           );
         }
         // Chapter title
@@ -426,7 +426,7 @@ const exportAsDocument = async (req, res) => {
               before: DOCX_STYLES.spacing.chapterBefore,
               after: DOCX_STYLES.spacing.chapterAfter,
             },
-          })
+          }),
         );
 
         // Chapter content
@@ -460,11 +460,11 @@ const exportAsDocument = async (req, res) => {
     // Send the document
     res.setHeader(
       "Content-Type",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     );
     res.setHeader(
       "Content-Disposition",
-      `attachment: filename="${book.title.replace(/[^a-zA-Z0-9]/g, "_")}.docx"`
+      `attachment; filename="${book.title.replace(/[^a-zA-Z0-9]/g, "_")}.docx"`,
     );
     res.setHeader("Content-Length", buffer.length);
     res.send(buffer);
@@ -481,170 +481,237 @@ const exportAsDocument = async (req, res) => {
 
 // Typography configuration for modern ebook styling
 const TYPOGRAPHY = {
-fonts:{
-serif: "Times-Roman",
-serifBold: "Times-Bold",
-serifItalic: "Times-Italic",
-sans: "Helvetica",
-sansBold: "Helvetica-Bold",
-sansoblique: "Helvetica-Oblique",
-},
-sizes: {
-title: 28,
-author: 16,
-chapterTitle: 20,
-h1: 18,
-h2: 16,
-h3: 14,
-body: 11,
-caption: 9,
-},
- spacing: {
-paragraphSpacing: 12,
-chapterSpacing: 24,
-headingSpacing: { before: 16, after: 8},
-listSpacing: 6,
-},
-colors: {
-text: "#333333",
-heading: "#1A1A1A",
-accent: "#4F46E5",
-},
+  fonts: {
+    serif: "Times-Roman",
+    serifBold: "Times-Bold",
+    serifItalic: "Times-Italic",
+    sans: "Helvetica",
+    sansBold: "Helvetica-Bold",
+    sansoblique: "Helvetica-Oblique",
+  },
+  sizes: {
+    title: 28,
+    author: 16,
+    chapterTitle: 20,
+    h1: 18,
+    h2: 16,
+    h3: 14,
+    body: 11,
+    caption: 9,
+  },
+  spacing: {
+    paragraphSpacing: 12,
+    chapterSpacing: 24,
+    headingSpacing: { before: 16, after: 8 },
+    listSpacing: 6,
+  },
+  colors: {
+    text: "#333333",
+    heading: "#1A1A1A",
+    accent: "#4F46E5",
+  },
 };
 const renderInlineTokens = (doc, tokens, options = {}) => {
-if (!tokens || tokens.length==0) return;
-const baseOptions = {
-align: options.align || "justify",
-indent: options.indent || 8,
-lineGap: options.lineGap || 2,
-};
-let currentFont = TYPOGRAPHY.fonts.serif;
-let textBuffer = "";
-const flushBuffer = () = {
-if (textBuffer) {
-doc.font(currentFont).text(textBuffer, {
-...baseOptions,
-continued: true,
-});
-textBuffer = "";
-}
-};
-for (let i = 0 ; i < tokens.length; i++) {
-const token = tokens [1];
-if (token.type == "text") {
-textBuffer += token.content;
-} else if (token.type === "strong_open") {
-flushBuffer();
-currentFont = TYPOGRAPHY.fonts.serifBold;
-} else if (token.type === "strong_close") {
-flushBuffer();
-currentFont = TYPOGRAPHY.fonts.serif;
-} else if (token.type == "em_open") {
-flushBuffer();
-currentFont = TYPOGRAPHY.fonts.serifItalic;
-}else if (token.type === "em_close") {
-flushBuffer();
-currentFont = TYPOGRAPHY.fonts.serif;
-} else if (token.type === "code_inline") {
-flushBuffer();
-doc.font("Courier").text(token.content,{
-    ...baseOptions,
-    continued: true,
-});
-doc.font(currentFont);
-}
-}
+  if (!tokens || tokens.length == 0) return;
+  const baseOptions = {
+    align: options.align || "justify",
+    indent: options.indent || 8,
+    lineGap: options.lineGap || 2,
+  };
+  let currentFont = TYPOGRAPHY.fonts.serif;
+  let textBuffer = "";
+  const flushBuffer = () => {
+    if (textBuffer) {
+      doc.font(currentFont).text(textBuffer, {
+        ...baseOptions,
+        continued: true,
+      });
+      textBuffer = "";
+    }
+  };
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (token.type == "text") {
+      textBuffer += token.content;
+    } else if (token.type === "strong_open") {
+      flushBuffer();
+      currentFont = TYPOGRAPHY.fonts.serifBold;
+    } else if (token.type === "strong_close") {
+      flushBuffer();
+      currentFont = TYPOGRAPHY.fonts.serif;
+    } else if (token.type == "em_open") {
+      flushBuffer();
+      currentFont = TYPOGRAPHY.fonts.serifItalic;
+    } else if (token.type === "em_close") {
+      flushBuffer();
+      currentFont = TYPOGRAPHY.fonts.serif;
+    } else if (token.type === "code_inline") {
+      flushBuffer();
+      doc.font("Courier").text(token.content, {
+        ...baseOptions,
+        continued: true,
+      });
+      doc.font(currentFont);
+    }
+  }
 
-if (textBuffer) {
-doc.font(currentFont).text(textBuffer, {
-...baseOptions,
-continued: false,
-});
-} else {
-doc.text("", { continued: false });
-}
+  if (textBuffer) {
+    doc.font(currentFont).text(textBuffer, {
+      ...baseOptions,
+      continued: false,
+    });
+  } else {
+    doc.text("", { continued: false });
+  }
 };
-const renderMarkdown = (doc, markdown)  => {
-     if (!markdown || markdown.trim() === "") return;
-const tokens = md.parse(markdown, {});
-let inList = false;
-let listType = null;
-let orderedListCounter = 1;
-for (let i = 0 ; i < tokens.length; i++) {
-const token = tokens [i];
-try{
-if (token.type === "heading_open"){ 
-    const level = parseInt(token.tag.substring(1), 10);
-let fontSize;
-switch (level) {
-case 1:
-fontSize= TYPOGRAPHY.sizes.h1;
-break;
-case 2:
-fontSize = TYPOGRAPHY.sizes.h2;
-break;
-case 3:
-fontSize = TYPOGRAPHY.sizes.h3;
-break;
-default:
-fontSize = TYPOGRAPHY.sizes.h3;
-}
-doc.moveDown (
-TYPOGRAPHY.spacing.headingSpacing.before / TYPOGRAPHY.sizes.body
-);
-doc.moveDown (
-TYPOGRAPHY.spacing.headingSpacing.before / TYPOGRAPHY.sizes.body
-);
-doc
-.font(TYPOGRAPHY.fonts.sansBold)
-.fontSize(fontSize)
-.fillColor(TYPOGRAPHY.colors.heading);
-if ( 1 + 1 < tokens. length && tokens [i + 1].type == "inline"){
-renderInlineTokens (doc, tokens [i + 1] .children, {
-align: "left",
-LineGap: 0,
-});
-i++;
-}
-doc.moveDown(
-TYPOGRAPHY.spacing.headingSpacing.after / TYPOGRAPHY.sizes.body
-);
-if (i+1 < tokens.length && tokens [i + 1].type === "heading_close") {
-i++;
-}
-} else if (token.type === "paragraph_open")
-doc
-.font (TYPOGRAPHY.fonts.serif)
-.fontSize(TYPOGRAPHY.sizes.body)
-.fillColor(TYPOGRAPHY.colors.text);
-if (i+1 < tokens. length && tokens [i + 1].type == "inline"){
-renderInlineTokens (doc, tokens [i + 1] .children,{
-    align: "justify",
-    lineGap: 2,
-});
-i++;
-}
+const renderMarkdown = (doc, markdown) => {
+  if (!markdown || markdown.trim() === "") return;
+  const tokens = md.parse(markdown, {});
+  let inList = false;
+  let listType = null;
+  let orderedListCounter = 1;
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    try {
+      if (token.type === "heading_open") {
+        const level = parseInt(token.tag.substring(1), 10);
+        let fontSize;
+        switch (level) {
+          case 1:
+            fontSize = TYPOGRAPHY.sizes.h1;
+            break;
+          case 2:
+            fontSize = TYPOGRAPHY.sizes.h2;
+            break;
+          case 3:
+            fontSize = TYPOGRAPHY.sizes.h3;
+            break;
+          default:
+            fontSize = TYPOGRAPHY.sizes.h3;
+        }
+        doc.moveDown(
+          TYPOGRAPHY.spacing.headingSpacing.before / TYPOGRAPHY.sizes.body,
+        );
+        doc.moveDown(
+          TYPOGRAPHY.spacing.headingSpacing.before / TYPOGRAPHY.sizes.body,
+        );
+        doc
+          .font(TYPOGRAPHY.fonts.sansBold)
+          .fontSize(fontSize)
+          .fillColor(TYPOGRAPHY.colors.heading);
+        if (1 + 1 < tokens.length && tokens[i + 1].type == "inline") {
+          renderInlineTokens(doc, tokens[i + 1].children, {
+            align: "left",
+            lineGap: 0,
+          });
+          i++;
+        }
+        doc.moveDown(
+          TYPOGRAPHY.spacing.headingSpacing.after / TYPOGRAPHY.sizes.body,
+        );
+        if (i + 1 < tokens.length && tokens[i + 1].type === "heading_close") {
+          i++;
+        }
+      } else if (token.type === "paragraph_open") {
+        doc
+          .font(TYPOGRAPHY.fonts.serif)
+          .fontSize(TYPOGRAPHY.sizes.body)
+          .fillColor(TYPOGRAPHY.colors.text);
 
-if (!inList) {
-doc.moveDown(
-TYPOGRAPHY.spacing.paragraphSpacing / TYPOGRAPHY.sizes.body
-);
-}
-if (i + 1 < tokens. length && tokens [i + 1].type === "paragraph_close") {
-i++;
-}
-} else if (token.type === "bullet_list_open") {
-inList = true;
-listType = "bullet";
-doc.moveDown (TYPOGRAPHY.spacing.listSpacing / TYPOGRAPHY.sizes.body);
-} else if (token.type == "bullet_list_close") {
-inList = false;
-listType = null;
-doc.moveDown (
-TYPOGRAPHY.spacing.paragraphSpacing / TYPOGRAPHY.sizes.body
-);
-} 
+        if (i + 1 < tokens.length && tokens[i + 1].type == "inline") {
+          renderInlineTokens(doc, tokens[i + 1].children, {
+            align: "justify",
+            lineGap: 2,
+          });
+          i++;
+        }
 
+        if (!inList) {
+          doc.moveDown(
+            TYPOGRAPHY.spacing.paragraphSpacing / TYPOGRAPHY.sizes.body,
+          );
+        }
+        if (i + 1 < tokens.length && tokens[i + 1].type === "paragraph_close") {
+          i++;
+        }
+      } else if (token.type === "bullet_list_open") {
+        inList = true;
+        listType = "bullet";
+        doc.moveDown(TYPOGRAPHY.spacing.listSpacing / TYPOGRAPHY.sizes.body);
+      } else if (token.type == "bullet_list_close") {
+        inList = false;
+        listType = null;
+        doc.moveDown(
+          TYPOGRAPHY.spacing.paragraphSpacing / TYPOGRAPHY.sizes.body,
+        );
+      } else if (token.type === "ordered_list_open") {
+        inList = true;
+        listType = "ordered";
+        orderedListCounter = 1;
+        doc.moveDown(TYPOGRAPHY.spacing.listSpacing / TYPOGRAPHY.sizes.body);
+      } else if (token.type === "ordered_list_close") {
+        inList = false;
+        listType = null;
+        orderedListCounter = 1;
+        doc.moveDown(
+          TYPOGRAPHY.spacing.paragraphSpacing / TYPOGRAPHY.sizes.body,
+        );
+      } else if (token.type === "list_item_open") {
+        let bullet = "";
+        if (listType === "bullet") {
+          bullet = ". ";
+        } else if (listType == "ordered") {
+          bullet = `${orderedListCounter}.`;
+          orderedListCounter++;
+        }
+        doc
+          .font(TYPOGRAPHY.fonts.serif)
+          .fontSize(TYPOGRAPHY.sizes.body)
+          .fillColor(TYPOGRAPHY.colors.text);
+        doc.text(bullet, { indent: 20, continued: true });
+        for (let j = i + 1; j < tokens.length; j++) {
+          if (tokens[j].type === "inline" && tokens[j].children) {
+            renderInlineTokens(doc, tokens[j].children, {
+              align: "left",
+              lineGap: 2,
+            });
+            break;
+          } else if (tokens[j].type === "list_item_close") {
+            break;
+          }
+        }
+        doc.moveDown(TYPOGRAPHY.spacing.listSpacing / TYPOGRAPHY.sizes.body);
+      } else if (token.type === "code_block" || token.type === "fence") {
+        doc.moveDown(
+          TYPOGRAPHY.spacing.paragraphSpacing / TYPOGRAPHY.sizes.body,
+        );
+        doc
+          .font("Courier")
+          .fontSize(9)
+          .fillColor(TYPOGRAPHY.colors.text)
+          .text(token.content, {
+            indent: 20,
+            align: "left",
+          });
+        doc.font(TYPOGRAPHY.fonts.serif).fontSize(TYPOGRAPHY.sizes.body);
+        doc.moveDown(
+          TYPOGRAPHY.spacing.paragraphSpacing / TYPOGRAPHY.sizes.body,
+        );
+      } else if (token.type === "hr") {
+        doc.moveDown();
+        const y = doc.y;
+        doc
+          .moveTo(doc.page.margins.left, y)
+          .lineTo(doc.page.width - doc.page.margins.right, y)
+          .stroke();
+        doc.moveDown();
+      }
+    } catch (tokenError) {
+      console.error("Error processing token:", token.type, tokenError);
+      continue;
+    }
+  }
+};
 
 const exportAsPDF = async (req, res) => {
   try {
@@ -665,7 +732,7 @@ const exportAsPDF = async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment: filename="${book.title.replace(/[^a-zA-Z0-9]/g, "_")}.pdf"`
+      `attachment: filename="${book.title.replace(/[^a-zA-Z0-9]/g, "_")}.pdf"`,
     );
     doc.pipe(res);
     // Cover page with image if available
@@ -723,7 +790,7 @@ const exportAsPDF = async (req, res) => {
             .fillColor(TYPOGRAPHY.colors.heading)
             .text(chapter.title || `Chapter ${index + 1}`, { align: "left" });
           doc.moveDown(
-            TYPOGRAPHY.spacing.chapterSpacing / TYPOGRAPHY.sizes.body
+            TYPOGRAPHY.spacing.chapterSpacing / TYPOGRAPHY.sizes.body,
           );
           // Chapter content
           if (chapter.content && chapter.content.trim()) {
@@ -747,6 +814,5 @@ const exportAsPDF = async (req, res) => {
     }
   }
 };
-
 
 module.exports = { exportAsPDF, exportAsDocument };
