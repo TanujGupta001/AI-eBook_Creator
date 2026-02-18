@@ -1,3 +1,5 @@
+export const BASE_URL = "https://ai-ebook-creator-behr.onrender.com";
+
 export const API_PATHS = {
   AUTH: {
     REGISTER: "/api/auth/register",
