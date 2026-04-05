@@ -22,7 +22,7 @@ import { API_PATHS } from "../../utils/apiPaths";
 function CreateBookModal({ isOpen, onClose, onBookCreate }) {
   const [step, setStep] = useState(1);
   const [bookTitle, setBookTitle] = useState("");
-  const [chapterCount, setChapterCount] = useState(5);
+  const [chapterCount, setChapterCount] = useState();
   const [chapters, setChapters] = useState([]);
   const [topic, setTopic] = useState("");
   const [writingStyle, setWritingStyle] = useState(WRITING_STYLES[0]);
@@ -36,7 +36,7 @@ function CreateBookModal({ isOpen, onClose, onBookCreate }) {
   const resetModal = () => {
     setStep(1);
     setBookTitle("");
-    setChapterCount(4);
+    setChapterCount(5);
     setChapters([]);
     setTopic("");
     setWritingStyle(WRITING_STYLES[0]);
