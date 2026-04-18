@@ -11,7 +11,7 @@ const ChapterEditorTab = ({
     chapters: [
       {
         title: "Chapter 1",
-        content: "_",
+        content: "-",
       },
     ],
   },
@@ -25,8 +25,8 @@ const ChapterEditorTab = ({
 
      const mdeOptions = useMemo(() => {
         return{
-            autofocus: true,
-            spellChecker: false,
+            autoFocus: true,
+            spellCheck: false,
             toolbar: [
                 "bold", "italic", "heading", "|", 
                 "quotes", "unordered-list", "ordered-list", "|",

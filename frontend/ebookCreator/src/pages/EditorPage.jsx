@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import axiosInstance from "./../utils/axiosInstance";
-import { API_PATHS } from "./../utils/apiPaths";
+import axiosInstance from "../utils/axiosInstance";
+import { API_PATHS } from "../utils/apiPaths";
 import {
   ChevronDown,
   Edit,
@@ -14,7 +14,8 @@ import {
   Save,
   X,
 } from "lucide-react";
-import  Dropdown, {DropdownItem} from "../components/ui/DropDown";
+
+import Dropdown, { DropdownItem } from "../components/ui/DropDown";
 import { arrayMove } from "@dnd-kit/sortable";
 import InputField from "../components/ui/InputField";
 import Button from "../components/ui/Button";
@@ -30,27 +31,35 @@ function EditorPage() {
   const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("editor"); // "editor" | "details"
+  const [activeTab, setActiveTab] = useState("editor");
   const [isUploading, setIsUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // AI Modal State
-const [isOutlineModalopen, setIsOutlineModalOpen] = useState(false);
-const [aiTopic, setAiTopic] = useState("");
-const [aiStyle, setAiStyle] = useState("Informative");
+  //AI Modals State
+  const [isOutlineModalOpen,setisOutlineModalOpen] = useState(false);
+  const[aiTopic,setAiTopic] = useState("");
+  const [aiStyle, setAiStyle] = useState("Informative");
 
   const { bookId } = useParams();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
-  // Fetch book on mount
+  // ✅ Fetch book
   useEffect(() => {
+    if (!bookId) return;
+
     const fetchBook = async () => {
       try {
         const { data } = await axiosInstance.get(
           `${API_PATHS.BOOKS.GET_BOOK_BY_ID}/${bookId}`
         );
-        setBook(data.book);
+
+        const bookData = data?.book || data;
+
+        setBook({
+          ...bookData,
+          chapters: bookData?.chapters || [],
+        });
       } catch (error) {
         console.error("Error fetching book:", error);
         toast.error("Failed to fetch book details!", { duration: 5000 });
@@ -63,55 +72,64 @@ const [aiStyle, setAiStyle] = useState("Informative");
     fetchBook();
   }, [bookId, navigate]);
 
+  // ✅ Edit book fields
   const handleEditBook = (event) => {
     const { name, value } = event.target;
     setBook((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleChapterChange = (e) => {
-    const {name, value} = e.target;
-    const updatedChapters = {...book.chapters};
-    updatedChapters[selectedChapterIndex][name] = value;
-    setBook((prev) => ({...prev,chapters : updatedChapters})); 
-  }
+  // ✅ Edit chapter
+  const handleEditChapter = (name, value) => {
+    const updatedChapters = [...(book?.chapters || [])];
+    updatedChapters[selectedChapterIndex] = {
+      ...updatedChapters[selectedChapterIndex],
+      [name]: value,
+    };
+
+    setBook((prev) => ({ ...prev, chapters: updatedChapters }));
+  };
+
+  // ✅ Add chapter
   const handleAddChapter = () => {
     const newChapter = {
-      title: `Chapter ${book.chapters.length + 1}`,
+      title: `Chapter ${(book?.chapters?.length || 0) + 1}`,
       content: "",
     };
-    const updatedChapters = [...book.chapters, newChapter];
+
+    const updatedChapters = [...(book?.chapters || []), newChapter];
+
     setBook((prev) => ({ ...prev, chapters: updatedChapters }));
     setSelectedChapterIndex(updatedChapters.length - 1);
   };
 
-  const handleEditChapter = (name, value) => {
-    const updatedChapters = [...book.chapters];
-    updatedChapters[selectedChapterIndex][name] = value;
-    setBook((prev) => ({ ...prev, chapters: updatedChapters }));
-  };
-
+  // ✅ Delete chapter
   const handleDeleteChapter = (index) => {
-    if (book.chapters.length <= 1) {
+    if ((book?.chapters?.length || 0) <= 1) {
       toast.error("A book must have at least one chapter!");
       return;
     }
 
     const updatedChapters = book.chapters.filter((_, i) => i !== index);
+
     setBook((prev) => ({ ...prev, chapters: updatedChapters }));
+
     setSelectedChapterIndex((prevIndex) =>
       prevIndex >= index ? Math.max(0, prevIndex - 1) : prevIndex
     );
   };
 
+  // ✅ Reorder chapters
   const handleReorderChapters = (oldIndex, newIndex) => {
     setBook((prev) => ({
       ...prev,
       chapters: arrayMove(prev.chapters, oldIndex, newIndex),
     }));
+
     setSelectedChapterIndex(newIndex);
   };
 
-  const handleSaveChanges = async (bookToSave = book, showToast = true) => {
+  // ✅ Save changes
+  const handleSaveChanges = async (bookToSave = book) => {
     setIsSaving(true);
 
     try {
@@ -120,20 +138,16 @@ const [aiStyle, setAiStyle] = useState("Informative");
         bookToSave
       );
 
-      if (showToast) {
-        toast.success("Changes saved successfully!");
-      }
+      toast.success("Changes saved successfully!");
     } catch (error) {
-      console.error("Error saving chapter content:", error);
-      toast.error("Failed to save changes! Please try again.", {
-        duration: 5000,
-      });
+      console.error("Error saving:", error);
+      toast.error("Failed to save changes!");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleCoverImgUpload = async (event) => {
+ const handleCoverImgUpload = async (event) => {
     const file = event.target.files[0];
 
     if (!file) {
@@ -173,7 +187,7 @@ const [aiStyle, setAiStyle] = useState("Informative");
       return;
     }
 
-    setIsGenerating(true);
+    setIsGenerating(index);
     const loadingToast = toast.loading("Generating content... Please wait!");
 
     try {
@@ -182,7 +196,7 @@ const [aiStyle, setAiStyle] = useState("Informative");
       } = await axiosInstance.post(API_PATHS.AI.GENERATE_CHAPTER_CONTENT, {
         chapterTitle: chapter.title,
         chapterDescription: chapter.description || "",
-        style: "Informative",
+        style: "aiStyle",
       });
 
       const updatedChapters = [...book.chapters];
@@ -271,8 +285,30 @@ const [aiStyle, setAiStyle] = useState("Informative");
     );
   }
 
+
+  // ✅ Loading UI
+  if (isLoading) {
+    return (
+      <main className="h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="size-12 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 text-sm">Loading Editor...</p>
+        </div>
+      </main>
+    );
+  }
+
+  // ❗ If book still null after loading
+  if (!book) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <p className="text-red-500">Failed to load book.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 font-display flex relative">
+  <div className="min-h-screen bg-slate-50 font-display flex relative">
       {/* Mobile sidebar */}
       {isSidebarOpen && (
         <aside
@@ -295,6 +331,7 @@ const [aiStyle, setAiStyle] = useState("Informative");
                 onClick={() => setIsSidebarOpen(false)}
                 className="size-10 rounded-full ml-1 flex justify-center items-center focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white hover:bg-white/10 transition-colors"
               >
+                <span className="sr-only">Close Sidebar</span>
                 <X className="size-6 text-white" />
               </button>
             </div>
@@ -373,7 +410,7 @@ const [aiStyle, setAiStyle] = useState("Informative");
                 } text-sm font-medium whitespace-nowrap rounded-md px-3 sm:px-4 py-2 flex justify-center items-center gap-2 transition-all duration-200`}
               >
                 <NotebookText className="size-4" />
-                <span className="hidden sm:inline">Book Details</span>
+                <span className="hidden sm:inline">Details</span>
               </button>
             </nav>
           </div>
@@ -417,7 +454,7 @@ const [aiStyle, setAiStyle] = useState("Informative");
               icon={Save}
               size="sm"
             >
-              Save Changes
+              Save
             </Button>
           </div>
         </header>

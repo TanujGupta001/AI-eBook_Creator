@@ -76,7 +76,7 @@ function SortableItem({
           }}
           isLoading={isGenerating}
           icon={Sparkles}
-          ariaLabel="Generate chapter content with AI"
+          aria-label="Generate chapter content with AI"
           title="Generate Chapter Content with AI"
           className="px-2 py-2 text-violet-600 hover:text-violet-700 hover:bg-violet-50"
         />
@@ -90,7 +90,7 @@ function SortableItem({
             onDeleteChapter(index);
           }}
           icon={Trash2}
-          ariaLabel="Delete chapter"
+          aria-label="Delete chapter"
           title="Delete Chapter"
           className="px-2 py-2 text-red-500 hover:text-red-600 hover:bg-red-50"
         />

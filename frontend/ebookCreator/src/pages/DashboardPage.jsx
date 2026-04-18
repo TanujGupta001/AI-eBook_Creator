@@ -112,6 +112,7 @@ const DashboardPage = () => {
         setBooks(response.data);
       } catch (error) {
         toast.error("Failed to fetch your eBooks.");
+        console.error(error);
       } finally {
         setIsLoading(false);
       }
@@ -139,10 +140,14 @@ const DashboardPage = () => {
     }
   };
 
-  const handleCreateBookClick = (bookId) => {
-    setIsCreateModalOpen(true);
-    
-  };
+const handleCreateBookClick  = () => {
+  setIsCreateModalOpen(true);
+};
+
+const handleBookCreated = (bookId) => {      // receives book._id string
+  setIsCreateModalOpen(false);
+  navigate(`/editor/${bookId}`);             // ✅ navigate to editor
+};
 
   return (
     <DashboardLayout>
@@ -212,7 +217,7 @@ const DashboardPage = () => {
         <CreateBookModal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
-          onBookCreate={handleCreateBookClick}
+          onBookCreate={handleBookCreated}
         />
       </div>
     </DashboardLayout>

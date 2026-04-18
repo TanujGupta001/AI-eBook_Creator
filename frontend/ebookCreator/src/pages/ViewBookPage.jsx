@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosInstance from "./../utils/axiosInstance";
 import { API_PATHS } from "./../utils/apiPaths";
@@ -7,22 +7,20 @@ import DashboardLayout from "../components/layout/DashboardLayout";
 import { Book } from "lucide-react";
 import Viewbook from "../components/view/Viewbook";
 
-const ViewBookSkeleton = () => (
+const ViewBookSkeleton = () => {
   <div className="animate-pulse">
-    <div className="w-1/2 h-8 bg-slate-200 rounded mb-4" />
-    <div className="w-1/2 h-8 bg-slate-200 rounded mb-4" />
-
-    <div className="flex items-center gap-8">
-      <div className="w-1/4">
-        <div className="h-96 bg-slate-200 rounded-lg" />
-      </div>
-
-      <div className="w-3/4">
-        <div className="h-full bg-slate-200 rounded-lg" />
-      </div>
-    </div>
+    <div className="h-8 bg-slate-200 rounded-w-1/2 mb-4"></div>
+    <div className="h-4 bg-slate-200 rounded-w-1/4 mb-9"></div>
+     <div className="flex gap-8">
+       <div className="w-1/4">
+         <div className="h-96 bg-slate-200 rounded-lg "></div>
+       </div>
+        <div className="w-3/4">
+           <div className="h-full bg-slate-200 rouded-lg"></div>
+        </div>
+     </div>
   </div>
-);
+};
 
 const ViewBookPage = () => {
   const { bookId } = useParams();
@@ -31,14 +29,16 @@ const ViewBookPage = () => {
   const [book, setBook] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch book on mount
   useEffect(() => {
+    if (!bookId) return;
+
     const fetchBook = async () => {
       try {
         const { data } = await axiosInstance.get(
           `${API_PATHS.BOOKS.GET_BOOK_BY_ID}/${bookId}`
         );
-        setBook(data.book);
+
+        setBook(data?.book || data);
       } catch (error) {
         console.error("Error fetching book:", error);
         toast.error("Failed to fetch book details!", { duration: 5000 });
@@ -49,7 +49,7 @@ const ViewBookPage = () => {
     };
 
     fetchBook();
-  }, [bookId, navigate]);
+  }, [bookId]);
 
   return (
     <DashboardLayout>
@@ -79,6 +79,6 @@ const ViewBookPage = () => {
       )}
     </DashboardLayout>
   );
-}
+};
 
-export default ViewBookPage
+export default ViewBookPage;

@@ -22,7 +22,7 @@ const ProfilePage = () => {
   const [hasAvatarChanged, setHasAvatarChanged] = useState(false);
 
     const fileInputRef = useRef(null);
-  const { user, updateUser, isLoading: authContextLoading } = useAuthContext();
+  const { user, updateUser, isLoading: authContextLoading } = useAuth();
 
   useEffect(() => {
     if (user) {

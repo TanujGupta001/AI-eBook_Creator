@@ -13,7 +13,7 @@ const BookCard = ({ book, onDelete }) => {
 
   return (
     <li
-      onClick={() => navigate(`/view-book/${_id}`)}
+      onClick={() => navigate(`/view-book/${book._id}`)}
       aria-label={`Visit ${title}'s details`}
       tabIndex={0}
       onKeyDown={(e) => {

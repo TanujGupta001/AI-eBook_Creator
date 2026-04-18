@@ -22,10 +22,10 @@ import { API_PATHS } from "../../utils/apiPaths";
 function CreateBookModal({ isOpen, onClose, onBookCreate }) {
   const [step, setStep] = useState(1);
   const [bookTitle, setBookTitle] = useState("");
-  const [chapterCount, setChapterCount] = useState();
+  const [chapterCount, setChapterCount] = useState(5);
   const [chapters, setChapters] = useState([]);
   const [topic, setTopic] = useState("");
-  const [writingStyle, setWritingStyle] = useState(WRITING_STYLES[0]);
+  const [writingStyle, setWritingStyle] = useState("Informative");
   const [isGeneratingOutline, setIsGeneratingOutline] = useState(false);
   const [isFinalisingBook, setIsFinalisingBook] = useState(false);
 
@@ -39,7 +39,7 @@ function CreateBookModal({ isOpen, onClose, onBookCreate }) {
     setChapterCount(5);
     setChapters([]);
     setTopic("");
-    setWritingStyle(WRITING_STYLES[0]);
+    setWritingStyle("Informative");
     setIsGeneratingOutline(false);
     setIsFinalisingBook(false);
   };
@@ -112,25 +112,24 @@ function CreateBookModal({ isOpen, onClose, onBookCreate }) {
     setIsFinalisingBook(true);
 
     try {
-      const {
-        data: { book },
-      } = await axiosInstance.post(API_PATHS.BOOKS.CREATE_BOOK, {
-        title: bookTitle,
-        author: user?.name || "Unknown Author",
-        chapters,
-      });
-      toast.success("eBook created successfully!");
-      // Check if book exists and has an _id before calling onBookCreate
-      if (book && book._id) {
-        onBookCreate(book._id);
-      } else {
-        // Optionally, handle the case where book or book._id is missing
-        console.warn("Book object or book._id was missing from the API response.");
-        toast.error("eBook created, but missing ID in response.");
-      }
+      const response = await axiosInstance.post(API_PATHS.BOOKS.CREATE_BOOK, {
+  title: bookTitle,
+  author: user?.name || "Unknown Author",
+  chapters,
+});
+
+const book = response.data.book || response.data;
+
+if (book && (book._id || book.id)) {
+  onBookCreate(book._id || book.id);
+} else {
+  console.warn("Book ID missing:", response.data);
+  toast.error("eBook created, but missing ID in response.");
+}
       onClose();
       resetModal();
     } catch (error) {
+      console.log("Test_",bookTitle,chapters);
       console.error("Error while creating eBook:", error);
       toast.error(error.response?.data?.message || "Failed to create eBook!");
     } finally {
@@ -360,7 +359,7 @@ function CreateBookModal({ isOpen, onClose, onBookCreate }) {
               variant="ghost"
               onClick={() => setStep(1)}
               icon={ArrowLeft}
-              ariaLabel="Go back to step 1"
+              aria-label="Go back to step 1"
             >
               Back
             </Button>

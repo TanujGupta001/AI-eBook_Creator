@@ -35,7 +35,7 @@ const Navbar = () => {
               <BookOpen className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-semibold text-gray-900 tracking-tight">
-              AI eBook Creator
+              Imprintly
             </span>
           </a>
 

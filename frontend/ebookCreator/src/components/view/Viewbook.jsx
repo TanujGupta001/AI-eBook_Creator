@@ -86,7 +86,7 @@ const Viewbook = ({book}) => {
             <div
               style={{
                 fontFamily: "Charter, Georgia, 'Times New Roman', serif",
-                fontSize,
+                fontSize:`${fontSize}px`,
                 lineHeight: 1.7,
               }}
               className="reading-content"

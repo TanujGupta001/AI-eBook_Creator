@@ -29,7 +29,6 @@ const createBook = async (req, res) => {
 // @access Private
 const getBookById = async (req, res) => {
   try {
-
     const book = await Book.findById(req.params.id);
     console.log("BOOK FOUND:", book);
     if (!book) {

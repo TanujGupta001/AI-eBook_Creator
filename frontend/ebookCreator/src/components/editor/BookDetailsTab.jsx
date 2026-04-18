@@ -10,7 +10,7 @@ const BookDetailsTab = ({
   isUploading,
   onCoverImageUpload,
 }) => {
-   const coverImageUrl = book.coverImage.startWith('http')
+   const coverImageUrl = book.coverImage.startsWith('http')
    ? book.coverImage
     :`${BASE_URL}/backend${book.coverImage}`.replace(/\\/g, "/");
 
